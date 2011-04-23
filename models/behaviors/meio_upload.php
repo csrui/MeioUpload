@@ -10,6 +10,7 @@
  * @author Jose Diaz-Gonzalez (support@savant.be)
  * @author Juan Basso (jrbasso@gmail.com)
  * @author Vinicius Mendes (vbmendes@gmail.com)
+ * @author Rui Cruz (http://ruicruz.com)
  * @package meio_upload
  * @subpackage meio_upload.models.behaviors
  * @filesource http://github.com/jrbasso/MeioUpload
@@ -47,8 +48,6 @@ class MeioUploadBehavior extends ModelBehavior {
 		),
 		'thumbnailQuality' => 75, // Global Thumbnail Quality
 		'thumbnailDir' => 'thumb',
-		'useImageMagick' => false,
-		'imageMagickPath' => '/usr/bin/convert', // Path to imageMagick on your server
 		'fields' => array(
 			'dir' => 'dir',
 			'filesize' => 'filesize',
@@ -59,6 +58,12 @@ class MeioUploadBehavior extends ModelBehavior {
 			'maxWidth' => 0,
 			'minHeight' => 0,
 			'maxHeight' => 0
+		),
+		'phpThumb' => array( // Allows for a better phpThumb configuration
+			'allow_src_above_docroot' => false,
+			'config_prefer_imagemagick' => false,
+			'config_imagemagick_path' => '/usr/bin/convert', // Path to imageMagick on your server	
+			'cache_directory' => TMP		
 		),
 		'validations' => array()
 	);
@@ -912,15 +917,15 @@ class MeioUploadBehavior extends ModelBehavior {
 		$phpThumb->config_output_format = $imageArray[1];
 		unset($imageArray);
 
-		$phpThumb->config_prefer_imagemagick = $this->__fields[$model->alias][$fieldName]['useImageMagick'];
-		$phpThumb->config_imagemagick_path = $this->__fields[$model->alias][$fieldName]['imageMagickPath'];
-
-		// Setting whether to die upon error
-		$phpThumb->config_error_die_on_error = true;
+		// Get phpThumb configuration from the model 
+		foreach($this->__fields[$model->alias][$fieldName]['phpThumb'] as $config_item => $value) {
+			$phpThumb->$config_item = $value;
+		}
+		
 		// Creating thumbnail
 		if ($phpThumb->GenerateThumbnail()) {
 			if (!$phpThumb->RenderToFile($target)) {
-				$this->_addError('Could not render image to: '.$target);
+				$this->log('Could not render image to: ' . $target);
 			}
 		}
 	}
@@ -1312,14 +1317,4 @@ class MeioUploadBehavior extends ModelBehavior {
 		return $data;
 	}
 
-/**
- * Adds an error, legacy from the component
- *
- * @param string $msg error message
- * @return void
- * @access protected
- */
-	function _addError($msg) {
-		$this->errors[] = $msg;
-	}
 }
