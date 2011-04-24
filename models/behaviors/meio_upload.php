@@ -61,8 +61,8 @@ class MeioUploadBehavior extends ModelBehavior {
 		),
 		'phpThumb' => array( // Allows for a better phpThumb configuration
 			'allow_src_above_docroot' => false,
-			'config_prefer_imagemagick' => false,
-			'config_imagemagick_path' => '/usr/bin/convert', // Path to imageMagick on your server	
+			'prefer_imagemagick' => false,
+			'imagemagick_path' => '/usr/bin/convert', // Path to imageMagick on your server	
 			'cache_directory' => TMP		
 		),
 		'validations' => array()
@@ -919,7 +919,7 @@ class MeioUploadBehavior extends ModelBehavior {
 
 		// Get phpThumb configuration from the model 
 		foreach($this->__fields[$model->alias][$fieldName]['phpThumb'] as $config_item => $value) {
-			$phpThumb->$config_item = $value;
+			$phpThumb->{"config_" . $config_item} = $value;
 		}
 		
 		// Creating thumbnail
